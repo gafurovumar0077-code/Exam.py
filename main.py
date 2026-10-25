@@ -61,6 +61,21 @@ async def add_recipe_handler(message: Message, command: CommandObject):
         "Ошибка при сохранении."
 
 
+@dp.message(Command("add_ingredient"))
+async def add_ingred(message:Message, command:CommandObject):
+    com=command.args
+    if not com:
+        await message.answer("Использование: /add_ingredient 1 Картошка 5")
+    recipe_id, name, amount = com.split()
+    adding = await add_ingredient(int(recipe_id), name, int(amount))
+    
+    if adding:
+        await message.answer("Ингредиент успешно добавлен!")
+    else:
+        await message.answer("Ошибка при добавлении ингредиента!")
+        
+
+
 
 async def main():
     await create_table_db()

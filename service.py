@@ -41,3 +41,18 @@ async def add_recipe(title):
     finally:
         await conn.close()
 
+
+async def add_ingredient(recipe_id, name, amount):
+    conn = await connection_db()
+    try:
+        await conn.execute(
+            """insert into ingredients(recipe_id, name, amount) values 
+            ($1, $2, $3)""", recipe_id, name, amount
+        )
+        return True
+    except Exception as error:
+        print(f"Adding Ingredients Error: {error}")
+        return False
+    finally:
+        await conn.close()
+    
