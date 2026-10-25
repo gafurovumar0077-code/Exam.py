@@ -121,3 +121,37 @@ async def recips(message:Message, command:CommandObject):
     await message.answer(text)
     
     
+         
+        
+@dp.message(Command("plan"))
+async def add_plan(message: Message, command: CommandObject):
+    if not command.args:
+       s = await message.answer("""
+📅 Как добавить рецепт в план питания:
+    1 — Понедельник
+    2 — Вторник
+    3 — Среда
+    4 — Четверг
+    5 — Пятница
+    6 — Суббота
+    7 — Воскресенье
+    📌 Пример использования:
+    /plan 1 5  (добавит рецепт с ID 5 на понедельник)
+                             """) 
+
+    parts = command.args.split()
+    try:
+        day_of_week=int(parts[0])
+        recipe_id=int(parts[1])
+    except ValueError:
+        await message.answer("⚠️ День недели и ID должны быть целыми числами! Пример: `/plan 1 5`")
+        return
+    telegram_id=message.from_user.id
+    
+    date=await add_to_plan(telegram_id, day_of_week, recipe_id)
+    
+    if date:
+        await message.answer("✅ Рецепт успешно добавлен в план питания!")
+    else:
+        await message.answer("❌ Не удалось добавить. Убедитесь, что такой рецепт существует и вы зарегистрированы в боте.")
+        

@@ -69,3 +69,18 @@ async def recipe(recipe_id):
         print(f"Recipe Error: {error}")
     finally:
         await conn.close()
+        
+
+
+async def ingredints(recipe_id):
+    conn = await connection_db()
+    try:
+        ingred = await conn.fetch("""
+         select name, amount from ingredients
+         where recipe_id = $1
+                                      """, recipe_id)
+        return ingred
+    except Exception as error:
+        print(f"Ingredients Error: {error}")
+    finally:
+        await conn.close()        
