@@ -83,4 +83,36 @@ async def ingredints(recipe_id):
     except Exception as error:
         print(f"Ingredients Error: {error}")
     finally:
+        await conn.close()
+        
+
+
+async def add_to_plan(telegram_id, day_of_week, recipe_id):
+    conn=await connection_db()
+    try:
+        if not (1 <= day_of_week <= 7):
+            print("Ошибка: День недели должен быть от 1 до 7")
+            return False
+        user = await conn.fetchrow("""
+            select user_id from users
+            where telegram_id = $1
+                                   """, str(telegram_id))
+        
+        recipe_exists = await conn.fetchrow("""
+            select recipe_id from recipe
+            where recipe_id = $1
+        """, recipe_id)
+        
+        if not recipe_exists:
+            print(f"Ошибка: Рецепт с ID {recipe_id} не существует!")
+            return False
+        
+        await conn.execute("""
+            insert into meal_plan(user_id, recipe_id, day_of_week) values
+            ($1, $2, $3)
+                           """, user["user_id"], recipe_id, int(day_of_week))
+        return True
+    except Exception as error:
+        print(f"Plan Error {error}")
+    finally:
         await conn.close()        
