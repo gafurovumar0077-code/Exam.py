@@ -18,7 +18,7 @@ dp = Dispatcher()
 
 main_kb = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text=""), KeyboardButton(text="")]
+        [KeyboardButton(text="📋 Мy recipe")]
     ],
     resize_keyboard=True,
 )
@@ -34,7 +34,7 @@ async def start_bot(message: Message):
 🥕 /add_ingredient [id рецепта] [ингредиент] [количество] - добавить ингредиент
 📖 /recipe [id рецепта] - посмотреть рецепт и ингредиенты
 📅 /plan — добавить рецепт в план питания (подсказка)
-                                """)
+                                """, reply_markup=main_kb)
     else:
         user = message.from_user
         await create_user(user.username, user.full_name, user.id)
@@ -45,7 +45,22 @@ async def start_bot(message: Message):
 🥕 /add_ingredient [id рецепта] [ингредиент] [количество] - добавить ингредиент
 📖 /recipe [id рецепта] - посмотреть рецепт и ингредиенты
 📅 /plan — добавить рецепт в план питания (подсказка)
-                                """)
+                                """, reply_markup=main_kb)
+
+
+
+@dp.message(Command("help"))
+async def start_bot(message: Message):
+    if await  get_user_by_id(message.from_user.id):
+        await message.answer(f"""
+📋 Доступные команды:
+📝 /add_recipe [название] - добавить рецепт
+🥕 /add_ingredient [id рецепта] [ингредиент] [количество] - добавить ингредиент
+📖 /recipe [id рецепта] - посмотреть рецепт и ингредиенты
+📅 /plan — добавить рецепт в план питания (подсказка)
+📖 /recipes [id рецепта] - посмотреть всех рецептов и ингредиентов
+""")
+
 
 
 
@@ -53,7 +68,7 @@ async def start_bot(message: Message):
 async def add_recipe_handler(message: Message, command: CommandObject):
     if not command.args:
         return await message.answer("ℹ️ Использование: /add_recipe Борщ 🍲")
-    recipe_id = await add_recipe(command.args)
+    recipe_id = await add_recipe(command.args, message.from_user.id)
     if recipe_id:
         await message.answer(f"✅ Рецепт успешно сохранён! 🆔 ID: {recipe_id}")
     else:
@@ -64,7 +79,7 @@ async def add_recipe_handler(message: Message, command: CommandObject):
 async def add_ingred(message:Message, command:CommandObject):
     com=command.args
     if not com:
-        await message.answer("ℹ️ Использование: /add_ingredient 1 Картошка 5 🥔")
+        await message.answer("ℹ️ Использование: /add_ingredient 1 Картошка 5")
     recipe_id, name, amount = com.split()
     adding = await add_ingredient(int(recipe_id), name, int(amount))
     
@@ -75,12 +90,36 @@ async def add_ingred(message:Message, command:CommandObject):
         
 
 
+@dp.message(F.text == "📋 Мy recipe")
+@dp.message(Command("recipes"))
+async def all_recipes(message: Message):
+    recs = await all_recipe(message.from_user.id)
+
+    if not recs:
+        await message.answer("🔍 Рецептов пока нет.")
+        return
+
+    text = "📋 Мои рецепты:"
+    for rec in recs:
+        text += f"""
+🍽️ {rec['recipe_id']}. {rec['title']}
+🛒 Ингредиенты:"""
+        ingred = await ingredints(rec["recipe_id"])
+        if ingred:
+            for ing in ingred:
+                text += f"""
+🔸 {ing["name"]}: {ing["amount"]}-шт"""
+        else:
+            text += " 🤷 Ингредиентов пока нет."
+    await message.answer(text)
+    
+
 
 
 @dp.message(Command("recipe"))
 async def recips(message:Message, command:CommandObject):
-    if not command.args:
-        await message.answer("ℹ️ Использование: /recipe 1 📖")
+    if command is None or not command.args:
+        await message.answer("ℹ️ Использование: /recipe 1")
         return
     try:
         recipe_id = int(command.args)

@@ -30,7 +30,6 @@ async def create_table_db():
             username varchar(200),
             full_name varchar(200),
             telegram_id varchar(300),
-            balance int,
             is_active boolean default true,
             created_at timestamp default now()
         );
@@ -38,12 +37,13 @@ async def create_table_db():
         create table if not exists recipe(
             recipe_id serial primary key,
             title varchar(200),
+            telegram_id varchar(300),
             is_active boolean default true,
             created_at timestamp default now()
         );
         create table if not exists ingredients(
             ingredients_id serial primary key,
-            recipe_id int references recipe(recipe_id),
+            recipe_id int references recipe(recipe_id) on delete cascade,
             name varchar(200),
             amount int,
             created_at timestamp default now() 
@@ -51,8 +51,8 @@ async def create_table_db():
 
         create table if not exists meal_plan(
             meal_id serial primary key,
-            user_id int references users(user_id),
-            recipe_id int references recipe(recipe_id),
+            user_id int references users(user_id) on delete cascade,
+            recipe_id int references recipe(recipe_id) on delete cascade,
             day_of_week int,
             created_at timestamp default now()
         )

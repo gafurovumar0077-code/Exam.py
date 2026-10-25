@@ -29,12 +29,12 @@ async def get_user_by_id(telegram_id):
         await conn.close()
 
 
-async def add_recipe(title):
+async def add_recipe(title, telegram_id):
     conn = await connection_db()
     try:
         return await conn.fetchval(
-            "insert into recipe(title) values ($1) returning recipe.recipe_id",
-            title
+            "insert into recipe(title, telegram_id) values ($1, $2) returning recipe.recipe_id",
+            title, str(telegram_id)
         )
     except Exception as error:
         print(f"Adding recipe Error: {error}")
@@ -116,3 +116,17 @@ async def add_to_plan(telegram_id, day_of_week, recipe_id):
         print(f"Plan Error {error}")
     finally:
         await conn.close()        
+
+
+async def all_recipe(telegram_id):
+    conn = await connection_db()
+    try:
+        rec = await conn.fetch("""
+        select recipe_id, title from recipe
+        where telegram_id = $1
+        order by recipe_id""", str(telegram_id))
+        return rec
+    except Exception as error:
+        print(f"All recipe Error: {error}")
+    finally:
+        await conn.close()
