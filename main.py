@@ -90,5 +90,34 @@ if __name__ == "__main__":
 
 
 
-
-         
+@dp.message(Command("recipe"))
+async def recips(message:Message, command:CommandObject):
+    if not command.args:
+        await message.answer("Использование: /recipe 1")
+        return
+    try:
+        recipe_id = int(command.args)
+    except ValueError:
+        await message.answer("ID рецепта должен быть числом! Пример: /recipe 1")
+        return
+    
+    rec = await recipe(recipe_id)
+    ing = await ingredints(recipe_id)
+    
+    if not rec or not rec["title"]:
+        await message.answer("Рецепт не найден.")
+        return
+    
+    text = f"""
+    {rec['title']}
+    
+    Ингредиенты:"""
+    if ing:
+        for ingred in ing:
+            text += f"""
+{ingred["name"]}: {ingred["amount"]}-шт"""
+    else:
+        text += "Ингредиентов пока нет."
+    await message.answer(text)
+    
+    
