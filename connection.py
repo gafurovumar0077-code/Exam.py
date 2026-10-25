@@ -11,7 +11,7 @@ async def connection_db():
     try:
         conn = await asyncpg.connect(
             user="postgres",
-            database="Shop_list",
+            database="shop_list",
             password=pass_db,
             host="localhost",
             port=5432
@@ -35,15 +35,15 @@ async def create_table_db():
             created_at timestamp default now()
         );
         
-        create table if not exists recipes(
-            recipes_id serial primary key,
+        create table if not exists recipe(
+            recipe_id serial primary key,
             title varchar(200),
             is_active boolean default true,
             created_at timestamp default now()
         );
         create table if not exists ingredients(
-            ingredients_id serial ptimary key,
-            recipe_id int references recipes(recipes_id),
+            ingredients_id serial primary key,
+            recipe_id int references recipe(recipe_id),
             name varchar(200),
             amount int,
             created_at timestamp default now() 
@@ -52,7 +52,7 @@ async def create_table_db():
         create table if not exists meal_plan(
             meal_id serial primary key,
             user_id int references users(user_id),
-            recipe_id int references recipes(recipes_id)
+            recipe_id int references recipe(recipe_id),
             day_of_week int,
             created_at timestamp default now()
         )
